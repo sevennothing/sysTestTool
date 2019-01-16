@@ -1,6 +1,7 @@
 ﻿#!/bin/sh
 
 LOG_FILE=/var/log/mem.log
+COMPRESS_LOGFILE=/var/log/mem_log.tar.gz
 sum=0
 MAND_PID=0
 LRCP_PID=0
@@ -14,6 +15,8 @@ DROPBEAR_PID=0
 CROND_PID=0
 
 tmp_pid=0
+
+tarfileCnt=0
 
 USE_SYSLOG=0
 
@@ -34,9 +37,19 @@ do_log(){
                 done                                                                                                                                                                                          
                 logger -p local5.info " "                                                                                                                                                                
         fi                                                                                                                                                                                                    
-        else                                                                                                                                                                                                  
+        else                                                                                                                                                                                               
                 echo "$1" >> $LOG_FILE                                                                                                                                                                        
         fi                                                                                                                                                                                                    
+}
+
+compress_log_file(){
+	if [ $USE_SYSLOG == 0 ];then
+		compressLogFile="/var/log/mem"$tarfileCnt".tar.gz"
+		echo " Compress MEM log file to $compressLogFile ..."
+		tar czf $compressLogFile $LOG_FILE
+		echo "" > $LOG_FILE
+		let tarfileCnt+=1
+	fi
 }
 
 first_log(){
@@ -174,11 +187,17 @@ do
 	log_pid_status $DROPBEAR_PID dropbear
 	log_pid_status $CROND_PID crond
 
+<<EOF
   for pid in $CHECK_PID_LIST
   do
 	log_pid_status $pid
   done
-  
+EOF
+
+  logfileSize=$(ls -l $LOG_FILE  | awk '{print $5}')
+  if [ $logfileSize -gt 10485760 ];then
+  	compress_log_file
+  fi
   sleep 10
   
 done

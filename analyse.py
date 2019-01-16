@@ -241,7 +241,7 @@ class LROS_tool_project(object):
 		patternstr = "slabinfo: 0 0 "
 		for item in self.data['sysinfo']['slabItem']:
 			patternstr += " *(\d+)"
-		#print(patternstr)
+		patternstr += " *"
 		patternSlab = re.compile(patternstr)
 		matches = re.findall(patternSlab, self.oriData)
 		self.data['slabinfolog'] = []
@@ -282,20 +282,27 @@ class LROS_tool_project(object):
 		self.oriData = self.oriDataFile.read()
 
 		### 适配syslog远程日志
+
 		self.oriData = self.oriData.replace('[#]\n','')
 		self.oriData = self.oriData.replace('#012\n','\n')
+		self.oriData = self.oriData.replace('#011',' ')
+		self.oriData = self.oriData.replace('state_machine_r','fibmgmt')
 
+		#'''
 		with open('tmp.log', 'w') as f:
 			f.write(self.oriData)
 		f.close()
+		#'''
+		#sys.exit()
+
 
 		self.get_system_base_info()
 		self.get_dest_pid()
 		self.get_total_count()
 		self.get_mem_usage()
 		self.get_meminfo()
-		self.get_slab_used_info()
 		self.get_iostat_info()
+		self.get_slab_used_info()
 
 		self.ts = []
 		for its in self.data['sysinfolog']:
