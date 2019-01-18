@@ -29,6 +29,10 @@ class LROS_tool_project(object):
 		self.data['memlog'] = []
 		self.data['meminfolog'] = []
 		self.data['programLog'] = {}
+		self.analyse_slabinfo = 1
+		self.analyse_meminfo = 1
+		self.analyse_programinfo = 1
+		self.saveTmpData = 1
 
 		## 相对时间使能
 		self.relative_time = 1
@@ -84,7 +88,8 @@ class LROS_tool_project(object):
 			#print(item)
 			program['name'] = item[0]
 			program['pid'] = item[1]
-			self.data['program'].append(program)
+			if not program in self.data['program']:
+				self.data['program'].append(program)
 
 		#print(json.dumps(self.data))
 
@@ -288,21 +293,22 @@ class LROS_tool_project(object):
 		self.oriData = self.oriData.replace('#011',' ')
 		self.oriData = self.oriData.replace('state_machine_r','fibmgmt')
 
-		#'''
-		with open('tmp.log', 'w') as f:
-			f.write(self.oriData)
-		f.close()
-		#'''
-		#sys.exit()
+		if(self.saveTmpData):
+			with open('tmp.log', 'w') as f:
+				f.write(self.oriData)
+			f.close()
+			#sys.exit()
 
 
 		self.get_system_base_info()
 		self.get_dest_pid()
 		self.get_total_count()
 		self.get_mem_usage()
-		self.get_meminfo()
+		if(self.analyse_meminfo):
+			self.get_meminfo()
 		self.get_iostat_info()
-		self.get_slab_used_info()
+		if(self.analyse_slabinfo):
+			self.get_slab_used_info()
 
 		self.ts = []
 		for its in self.data['sysinfolog']:
@@ -311,8 +317,9 @@ class LROS_tool_project(object):
 			else:
 				self.ts.append(int(its['ts']))
 
-		for program in self.data['program']:
-			self.get_program_mem_usage(program['name'])
+		if(self.analyse_programinfo):
+			for program in self.data['program']:
+				self.get_program_mem_usage(program['name'])
 
 		pass
 
@@ -437,8 +444,10 @@ class LROS_tool_project(object):
 				VmLib[prname].append(item['VmLib'])
 				VmPTE[prname].append(item['VmPTE'])
 
-			#print("=============>" + prname)
-			df = pd.DataFrame({'ts':self.ts,
+			if(len(self.ts) != len(VmPeak[prname])):
+				print("!!!====> ts not match VmPeak in " + prname + "> ts:" + str(len(self.ts)) + " VmPeak:" + str(len(VmPeak[prname])))
+
+			df = pd.DataFrame({'ts':self.ts[0:len(VmPeak[prname])],
 							   'VmPeak':VmPeak[prname],
 				               'VmSize': VmSize[prname],
 				               'VmLck': VmLck[prname],
@@ -458,9 +467,12 @@ class LROS_tool_project(object):
 		pass
 
 	def save_data_to_csv_data_file(self):
-		self.save_meminfo_to_csv_data_file()
-		#self.save_program_data_to_csv_data_file()
-		self.save_slabinfo_to_csv_data_file()
+		if(self.analyse_meminfo):
+			self.save_meminfo_to_csv_data_file()
+		if(self.analyse_programinfo):
+			self.save_program_data_to_csv_data_file()
+		if(self.analyse_slabinfo):
+			self.save_slabinfo_to_csv_data_file()
 
 		pass
 
@@ -572,14 +584,17 @@ class LROS_tool_project(object):
 
 	def data_view(self):
 		self.df = {}
+		if(self.analyse_meminfo):
+			self.view_mem_info()
+		if(self.analyse_slabinfo):
+			self.view_slab_info()
 
-		self.view_mem_info()
-		self.view_slab_info()
 		self.view_iostat_info()
 
-		for program in self.data['program']:
-			prname = program['name']
-			self.view_program_mem(prname)
+		if(self.view_program_mem):
+			for program in self.data['program']:
+				prname = program['name']
+				self.view_program_mem(prname)
 
 		plt.show()
 
