@@ -32,7 +32,8 @@ class LROS_tool_project(object):
 		self.analyse_slabinfo = 1
 		self.analyse_meminfo = 1
 		self.analyse_programinfo = 1
-		self.saveTmpData = 1
+		self.saveTmpData = 0
+		self.saveFigure = 1
 
 		## 相对时间使能
 		self.relative_time = 1
@@ -492,8 +493,14 @@ class LROS_tool_project(object):
 		#self.df[programName].plot()
 		#plt.show()
 		'''
-		fig = self.df[programName].plot(kind="line",title=programName,logy=True,subplots=True)
-		#fig.set_ylabel("MEM with KB")
+		#fig = self.df[programName].plot(kind="line",title=programName,logy=True,subplots=True)
+		
+
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		self.df[programName].plot(ax=ax1, kind="line",title=programName,logy=True,subplots=True)
+		ax1.set_ylabel("MEM with KB")
+		fig.savefig(programName + ".png", dpi=400, bbox_inches='tight')
 
 		pass
 	def view_mem_info(self):
@@ -506,8 +513,13 @@ class LROS_tool_project(object):
 		plt.title("meminfo")
 		plt.plot(self.df['meminfo'])
 		'''
-		fig = self.df['meminfo'].plot(kind="line",title="meminfo",logy=False, subplots=True)
-		#fig.set_ylabel("MEM with KB")
+		#fig = self.df['meminfo'].plot(kind="line",title="meminfo",logy=False, subplots=True)
+
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		self.df['meminfo'].plot(ax=ax1, kind="line",title="meminfo",logy=False, subplots=True)
+		ax1.set_ylabel("MEM with KB")
+		fig.savefig("meminfo.png", dpi=400, bbox_inches='tight')
 
 		pass
 	def view_slab_info(self):
@@ -516,7 +528,14 @@ class LROS_tool_project(object):
 			return -1
 		self.df['slabinfo'] = pd.read_csv('slabinfo.csv', index_col=0,
 										   usecols=['ts','sum'])
-		fig = self.df['slabinfo'].plot(kind="line",title="slabinfo",logy=False, subplots=False)
+		#fig = self.df['slabinfo'].plot(kind="line",title="slabinfo",logy=False, subplots=False)
+
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		self.df['slabinfo'].plot(ax=ax1, kind="line",title="slabinfo",logy=False, subplots=False)
+		ax1.set_ylabel("MEM with KB")
+		fig.savefig("slabinfo.png", dpi=400, bbox_inches='tight')
+
 
 		'''
 		## 堆积柱状图
@@ -559,7 +578,12 @@ class LROS_tool_project(object):
 		self.df['slabinfoSpec'] = pd.read_csv('slabinfo.csv', index_col=0,
 										   usecols=specCols)
 
-		fig = self.df['slabinfoSpec'].plot(kind="line",title="slabinfoSpec",logy=False, subplots=False,marker='*')
+		#fig2 = self.df['slabinfoSpec'].plot(kind="line",title="slabinfoSpec",logy=False, subplots=False,marker='*')
+		fig2 = plt.figure()
+		ax21 = fig2.add_subplot(111)
+		self.df['slabinfoSpec'].plot(ax=ax21, kind="line",title="slabinfoSpec",logy=False, subplots=False,marker='.')
+		ax21.set_ylabel("MEM with KB")
+		fig2.savefig("slabinfoSpec.png", dpi=400, bbox_inches='tight')
 
 		pass
 
@@ -572,9 +596,12 @@ class LROS_tool_project(object):
 		usecols += self.data['sysinfo']['iostatItem']
 		self.df[blockItem] = pd.read_csv(blockItem + '.csv', index_col=0,
 										   usecols=usecols)
-
-		fig = self.df[blockItem].plot(kind="line",title=blockItem, logy=False, subplots=True)
-
+		#fig = self.df[blockItem].plot(kind="line",title=blockItem, logy=False, subplots=True)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		self.df[blockItem].plot(ax=ax1, kind="line",title=blockItem, logy=False, subplots=True)
+		fig.savefig(blockItem + ".png", dpi=400, bbox_inches='tight')
+		
 		pass
 
 	def view_iostat_info(self):
