@@ -1,4 +1,7 @@
 # coding:utf-8
+#    __author__ = 'licj'
+#    __date__ = '2019/1/12'
+#    __Desc__ = 分析610A-8 内存泄露
 import sys
 import os
 
@@ -11,10 +14,11 @@ import re
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
- 
-#    __author__ = 'licj'
-#    __date__ = '2019/1/12'
-#    __Desc__ = 分析610A-8 内存泄露
+
+from syslogCollect import *
+from Dynamic_analysis import *
+
+import threading
 
 
 class LROS_tool_project(object):
@@ -34,6 +38,7 @@ class LROS_tool_project(object):
 		self.analyse_programinfo = 1
 		self.saveTmpData = 0
 		self.saveFigure = 1
+		self.syslogCollectEn = 1
 
 		## 相对时间使能
 		self.relative_time = 1
@@ -62,6 +67,8 @@ class LROS_tool_project(object):
 							'VmallocTotal','VmallocUsed','VmallocChunk'
 							]
 
+		self.dynamicAnalysise = Dynamic_analysis()
+		
 		pass
 
 	def get_system_base_info(self):
@@ -380,7 +387,6 @@ class LROS_tool_project(object):
 
 		pass
 
-
 	def save_blockn_iostatinfo_to_csv_data_file(self, blockItem):
 		iostatinfo = {}
 		iostatinfo['ts'] = self.ts
@@ -627,14 +633,34 @@ class LROS_tool_project(object):
 
 		pass
 
+class ThreadCollectLog(threading.Thread):
+	def __init__(self, threadID, name, dynamicAnalysiseTool):
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.name = name
+		self.analyseTool = dynamicAnalysiseTool
+
+	def run(self):
+		global is_run
+		print("Start Thread " + self.name)
+		logc = SyslogCollect(dynamicAnalysiseTool=self.analyseTool)
+		print("Stop Thread " + self.name)
+
 if __name__ == "__main__":
 	print(datetime.datetime.now())
 
 	prj = LROS_tool_project()
-	prj.pre_process_data("./mem.log")
 
-	prj.save_data_to_json_file("./mem.json")
-	prj.save_data_to_csv_data_file()
-	prj.save_iostatinfo_to_csv_data_file()
+	if(prj.syslogCollectEn):
+		threadCollectlog = ThreadCollectLog(2, "collectLog", prj.dynamicAnalysise)
+		threadCollectlog.start()
+		threadCollectlog.join()
+		prj.dynamicAnalysise.wait_stop_analysis()
 
-	prj.data_view()
+
+	else:
+		prj.pre_process_data("./mem.log")
+		prj.save_data_to_json_file("./mem.json")
+		prj.save_data_to_csv_data_file()
+		prj.save_iostatinfo_to_csv_data_file()
+		prj.data_view()

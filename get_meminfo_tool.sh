@@ -32,8 +32,12 @@ do_log(){
                 while [ $cnt -le $strlen ]                                                                                                                                                                    
                 do                                                                                                                                                                                            
                   msg=${1:$cnt:125}                                                                                                                                                                           
-                  logger -p local5.info "$msg[#]"                                                                                                                                                                
                   let cnt+=125                                                                                                                                                                                
+                  if [ $cnt -ge $strlen ];then
+	                  logger -p local5.info "$msg"                                                                                                                                                                
+                  else
+	                  logger -p local5.info "$msg[#]"                                                                                                                                                                
+                  fi
                 done                                                                                                                                                                                          
                 logger -p local5.info " "                                                                                                                                                                
         fi                                                                                                                                                                                                    
