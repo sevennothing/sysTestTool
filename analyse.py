@@ -67,7 +67,8 @@ class LROS_tool_project(object):
 							'VmallocTotal','VmallocUsed','VmallocChunk'
 							]
 
-		self.dynamicAnalysise = Dynamic_analysis()
+		if(self.syslogCollectEn):
+			self.dynamicAnalysise = Dynamic_analysis()
 		
 		pass
 
@@ -644,6 +645,7 @@ class ThreadCollectLog(threading.Thread):
 		global is_run
 		print("Start Thread " + self.name)
 		logc = SyslogCollect(dynamicAnalysiseTool=self.analyseTool)
+		logc.run()
 		print("Stop Thread " + self.name)
 
 if __name__ == "__main__":

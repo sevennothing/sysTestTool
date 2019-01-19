@@ -100,6 +100,8 @@ class SyslogCollect(object):
         glogger = self.logItem
         gDynamicAnalysiseTool = dynamicAnalysiseTool
         #LOG_FILE = logfile
+        
+    def run(self):
         try:
             server = socketserver.UDPServer((self.host, self.port), SyslogUDPHandler)
             server.serve_forever(poll_interval=0.5)

@@ -72,11 +72,18 @@ class ThreadStoreData(threading.Thread):
 	def run(self):
 		global is_run
 		print("Start Thread " + self.name)
-		while is_run:
-			time.sleep(self.interval)
-			self.dataStore.commit_store_data()
-		print("Stop Thread " + self.name)
 
+		try:
+			while is_run:
+				time.sleep(self.interval)
+				self.dataStore.commit_store_data()
+
+		except (IOError, SystemExit):
+			raise
+		except KeyboardInterrupt:
+			print ("Crtl+C Pressed. Shutting down.")
+
+		print("Stop Thread " + self.name)
 
 
 def signal_handler(signum, frame):
